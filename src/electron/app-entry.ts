@@ -3,7 +3,7 @@ import { ipcMain } from "electron";
 
 enum AppWindows {
     main = "main",
-    loading = "loading",
+    loading = "loading"
 }
 
 class Application {
@@ -45,18 +45,25 @@ class Application {
         const options = {
             height: 600,
             width: 800,
-            show: false,
+            show: false
         };
-        this.mainWindow = this.createWindow(AppWindows.main, options);
-        this.mainWindow.loadURL(global.CONFIG.entryUrl);
+        const mainWindow = this.createWindow(AppWindows.main, options);
+        mainWindow.loadURL(global.CONFIG.entryUrl);
+
+        mainWindow.on("ready-to-show", () => {
+            this.closeWindow(AppWindows.loading);
+            this.openMainWindow();
+        });
+
+        return mainWindow;
     }
 
     public openMainWindow() {
-        if (!this.mainWindow) {
-            this.createMainWindow();
+        let mainWindow = this.mainWindow;
+        if (!mainWindow) {
+            mainWindow = this.createMainWindow();
         }
-
-        this.mainWindow!.show();
+        mainWindow!.show();
     }
 
     public closeMainWindow() {
@@ -66,7 +73,7 @@ class Application {
         }
     }
 
-    public closeAllWindow() {
+    public closeAllWindows() {
         const windows = this.windows.values();
         for (const window of windows) {
             window.close();
@@ -74,43 +81,59 @@ class Application {
     }
 
     public openLoadingWindow() {
-        if (!this.getWindow(AppWindows.loading)) {
+        let loadingWindow = this.getWindow(AppWindows.loading);
+        if (!loadingWindow) {
             const options = {
                 width: 360,
                 height: 600,
+                show: false
             };
-            const window = this.createWindow(AppWindows.loading, options);
+            loadingWindow = this.createWindow(AppWindows.loading, options);
+            loadingWindow.loadURL(global.CONFIG.loadingUrl);
+        }
+        loadingWindow.show();
+    }
 
-            window.loadURL(global.CONFIG.loadingUrl);
-            window.webContents.on("did-finish-load", () => {
-                setTimeout(() => {
-                    this.openMainWindow();
-                    window.close();
-                }, 3000);
-            });
+    public closeWindow(name: AppWindows) {
+        const window = this.windows.get(name);
+        if (window) {
+            window.close();
+        }
+    }
+
+    public hideWindow(name: AppWindows) {
+        const window = this.windows.get(name);
+        if (window) {
+            window.hide();
         }
     }
 
     public start() {
         if (!this.mainWindow) {
             this.createMainWindow();
+            this.openLoadingWindow();
+        } else {
+            this.openMainWindow();
         }
-        this.openLoadingWindow();
+    }
+
+    public activate() {
+        this.openMainWindow();
     }
 
     public quit() {
         this.closeMainWindow();
-        this.closeAllWindow();
+        this.closeAllWindows();
     }
 
     private createWindow(
         name: AppWindows,
-        option: Electron.BrowserWindowConstructorOptions,
+        option: Electron.BrowserWindowConstructorOptions
     ) {
         const window = new BrowserWindow(option);
         this.windows.set(name, window);
 
-        window.on("close", () => {
+        window.on("closed", () => {
             this.windows.delete(name);
         });
 

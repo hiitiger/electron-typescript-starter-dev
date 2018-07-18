@@ -17,7 +17,7 @@ const CONFIG: any = {};
 if (global.DEBUG) {
     CONFIG.entryUrl = fileUrl(path.join(__dirname, "../index/index.html"));
 } else {
-    CONFIG.entryUrl = "https://duckduckgo.com";
+    CONFIG.entryUrl = "https://google.com";
 }
 
 CONFIG.loadingUrl = fileUrl(
