@@ -14,6 +14,7 @@ class Application {
     private appDir: string;
     private tray: Electron.Tray | null;
     private markQuit = false;
+    private isWebReady = false;
 
     constructor() {
         this.windows = new Map();
@@ -44,6 +45,17 @@ class Application {
                 window.reload();
             });
 
+            window.webContents.on("new-window", (e, url) => {
+                e.preventDefault();
+                shell.openExternal(url);
+            });
+
+            window.webContents.on("will-navigate", (e, url) => {
+                if (!url.startsWith(global.CONFIG.endPoint)) {
+                    e.preventDefault();
+                }
+            });
+
             window.on("close", (event) => {
                 if (this.markQuit) {
                     return;
@@ -68,10 +80,13 @@ class Application {
     }
 
     public createMainWindow() {
-        const options = {
+        const options: Electron.BrowserWindowConstructorOptions = {
             height: 600,
             width: 800,
             show: false,
+            webPreferences: {
+                nodeIntegration: false,
+            },
         };
         const mainWindow = this.createWindow(AppWindows.main, options);
         this.mainWindow = mainWindow;
@@ -108,11 +123,24 @@ class Application {
                 width: 360,
                 height: 600,
                 show: false,
+                frame: false,
+                resizable: false,
             };
             loadingWindow = this.createWindow(AppWindows.loading, options);
             loadingWindow.loadURL(global.CONFIG.loadingUrl);
+            loadingWindow.on("ready-to-show", () => {
+                if (!this.isWebReady) {
+                    loadingWindow!.show();
+                }
+            });
+            loadingWindow.on("close", () => {
+                if (!this.isWebReady) {
+                    this.quit();
+                }
+            });
+        } else {
+            loadingWindow.show();
         }
-        loadingWindow.show();
     }
 
     public closeWindow(name: AppWindows) {
@@ -139,7 +167,9 @@ class Application {
 
     public setupSystemTray() {
         if (!this.tray) {
-            this.tray = new Tray(path.join(this.appDir, "assets/icon-16.png"));
+            this.tray = new Tray(
+                path.join(global.CONFIG.distDir, "assets/icon-16.png"),
+            );
             const contextMenu = Menu.buildFromTemplate([
                 {
                     label: "OpenMainWindow",
@@ -170,15 +200,12 @@ class Application {
     }
 
     public start() {
-        if (!this.mainWindow) {
-            this.createMainWindow();
-            this.openLoadingWindow();
-        } else {
-            this.webReady();
-        }
+        this.createMainWindow();
+        this.openLoadingWindow();
     }
 
     public webReady() {
+        this.isWebReady = true;
         this.closeWindow(AppWindows.loading);
         this.showAndFocusWindow(AppWindows.main);
         this.setupSystemTray();
@@ -198,7 +225,7 @@ class Application {
     }
 
     public showAbout() {
-        this.openLink(path.join(this.appDir, "./index/about.txt"));
+        this.openLink(path.join(global.CONFIG.distDir, "./index/about.txt"));
     }
 
     public openLink(url: string) {

@@ -1,18 +1,19 @@
 {
-  "name": "app",
-  "version": "1.0.0",
-  "main": "./dist/main.js",
-  "license": "MIT",
-  "scripts": {
-    "build": "tsc",
-    "watch": "tsc -w",
-    "lint": "tslint -c tslint.json -p tsconfig.json",
-    "start": "electron ./dist/main.js",
-    "dev": "npm run build && npm run start"
-  },
-  "devDependencies": {
-    "electron": "^3.0.0-beta.2",
-    "tslint": "^5.10.0",
-    "typescript": "^2.9.2"
-  }
+    "name": "app",
+    "version": "1.0.0",
+    "main": "./dist/js/main.js",
+    "license": "MIT",
+    "scripts": {
+        "build": "tsc",
+        "watch": "tsc -w",
+        "lint": "tslint -c tslint.json -p tsconfig.json",
+        "start": "electron .",
+        "dev": "npm run build && npm run start",
+        "compile:electron": "electron-rebuild -v 3.0.0-beta.2 -a ia32"
+    },
+    "devDependencies": {
+        "electron": "3.0.0-beta.2",
+        "tslint": "^5.10.0",
+        "typescript": "^2.9.2"
+    }
 }

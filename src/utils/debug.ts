@@ -1,3 +1,3 @@
-global.DEBUG = false;
+global.DEBUG = true;
 
 export default global.DEBUG;

@@ -14,14 +14,18 @@ function fileUrl(str: string) {
 
 const CONFIG: any = {};
 
+CONFIG.distDir = path.join(__dirname, "../../");
+
 if (global.DEBUG) {
-    CONFIG.entryUrl = fileUrl(path.join(__dirname, "../index/index.html"));
+    CONFIG.entryUrl = fileUrl(path.join(CONFIG.distDir, "index/index.html"));
+    CONFIG.endPoint = fileUrl(path.join(CONFIG.distDir));
 } else {
-    CONFIG.entryUrl = "https://google.com";
+    CONFIG.entryUrl = "";
+    CONFIG.endPoint = "";
 }
 
 CONFIG.loadingUrl = fileUrl(
-    path.join(__dirname, "../index/loading/loading.html"),
+    path.join(CONFIG.distDir, "index/loading/loading.html"),
 );
 
 global.CONFIG = CONFIG;
