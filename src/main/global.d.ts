@@ -6,6 +6,8 @@ declare namespace NodeJS {
             loadingUrl: string;
             entryUrl: string;
             endPoint: string;
+            appDataDir: string;
+            settingsFile: string;
         };
     }
 }

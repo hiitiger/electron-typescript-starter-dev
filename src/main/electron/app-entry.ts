@@ -3,11 +3,18 @@ import { Menu, Tray } from "electron"
 import { ipcMain } from "electron"
 import { shell } from "electron"
 import * as path from "path"
+import { WebEvents } from "./events"
 
 enum AppWindows {
     main = "main",
     loading = "loading"
 }
+
+const ClientWindows: string[] = [AppWindows.main, AppWindows.loading]
+
+const PREADLOAD_JS = path.join(__dirname, "./preload.js")
+
+console.log(PREADLOAD_JS)
 
 class Application {
     private windows: Map<string, Electron.BrowserWindow>
@@ -38,7 +45,7 @@ class Application {
             window.loadURL(global.CONFIG.entryUrl)
 
             window.on("ready-to-show", () => {
-                this.webReady()
+                console.log("main window loaded")
             })
 
             window.webContents.on("did-fail-load", () => {
@@ -71,11 +78,15 @@ class Application {
         }
     }
 
+    get browserWindows() {
+        return this.windows
+    }
+
     public init(appDir: string) {
         this.appDir = appDir
     }
 
-    public getWindow(window: AppWindows) {
+    public getWindow(window: string) {
         return this.windows.get(window) || null
     }
 
@@ -85,7 +96,8 @@ class Application {
             width: 800,
             show: false,
             webPreferences: {
-                nodeIntegration: false
+                nodeIntegration: true,
+                preload: PREADLOAD_JS
             }
         }
         const mainWindow = this.createWindow(AppWindows.main, options)
@@ -143,26 +155,51 @@ class Application {
         }
     }
 
-    public closeWindow(name: AppWindows) {
+    public closeWindow(name: string) {
         const window = this.windows.get(name)
         if (window) {
             window.close()
         }
     }
 
-    public hideWindow(name: AppWindows) {
+    public hideWindow(name: string) {
         const window = this.windows.get(name)
         if (window) {
             window.hide()
         }
     }
 
-    public showAndFocusWindow(name: AppWindows) {
+    public showAndFocusWindow(name: string) {
         const window = this.windows.get(name)
         if (window) {
             window.show()
             window.focus()
         }
+    }
+
+    public browserOpenWindow(
+        name: string,
+        url: string,
+        preload: boolean,
+        options: Electron.BrowserViewConstructorOptions
+    ) {
+        if (ClientWindows.indexOf(name) !== -1) {
+            return null
+        }
+
+        if (preload) {
+            options.webPreferences = {
+                ...options.webPreferences,
+                preload: PREADLOAD_JS
+            }
+        }
+
+        const window = this.createWindow(name, options)
+
+        window.loadURL(url)
+        window.show()
+
+        return window.id
     }
 
     public setupSystemTray() {
@@ -200,15 +237,9 @@ class Application {
     }
 
     public start() {
+        this.setupIpc()
         this.createMainWindow()
         this.openLoadingWindow()
-    }
-
-    public webReady() {
-        this.isWebReady = true
-        this.closeWindow(AppWindows.loading)
-        this.showAndFocusWindow(AppWindows.main)
-        this.setupSystemTray()
     }
 
     public activate() {
@@ -216,6 +247,9 @@ class Application {
     }
 
     public quit() {
+        if (this.markQuit) {
+            return
+        }
         this.markQuit = true
         this.closeMainWindow()
         this.closeAllWindows()
@@ -232,25 +266,37 @@ class Application {
         shell.openExternal(url)
     }
 
+    private webReady() {
+        this.isWebReady = true
+        this.closeWindow(AppWindows.loading)
+        this.showAndFocusWindow(AppWindows.main)
+        this.setupSystemTray()
+    }
+
     private createWindow(
-        name: AppWindows,
-        option: Electron.BrowserWindowConstructorOptions
+        name: string,
+        options: Electron.BrowserWindowConstructorOptions
     ) {
-        const { webPreferences } = option
-        option = {
-            ...option,
+        const { webPreferences } = options
+        options = {
+            ...options,
             webPreferences: {
                 nodeIntegration: false,
                 ...webPreferences
             }
         }
 
-        const window = new BrowserWindow(option)
+        const window = new BrowserWindow(options)
         this.windows.set(name, window)
         window.on("closed", () => {
             this.windows.delete(name)
         })
         return window
+    }
+
+    private setupIpc() {
+        ipcMain.on(WebEvents.APP.READY, () => this.webReady())
+        ipcMain.on(WebEvents.APP.QUIT, () => this.quit())
     }
 }
 

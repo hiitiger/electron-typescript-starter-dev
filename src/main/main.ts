@@ -1,8 +1,15 @@
 import { app as ElectronApp } from "electron"
-
 import "./utils/config"
 
 import { Application } from "./electron/app-entry"
+
+import { settings } from "./electron/common/settings"
+
+import mkdirp from "mkdirp"
+
+mkdirp(global.CONFIG.appDataDir, (err) => {
+    console.log(err)
+})
 
 const appEntry = new Application()
 
