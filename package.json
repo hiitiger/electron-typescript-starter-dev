@@ -10,12 +10,13 @@
         "lint": "tslint -c tslint.json -p tsconfig.json",
         "start": "electron .  --enable-logging",
         "dev": "npm run build && npm run start",
-        "compile:electron": "electron-rebuild -v 2.0.7"
+        "package:dir": "npm run build && electron-builder --dir"
     },
     "devDependencies": {
         "@types/mkdirp": "^0.5.2",
         "awesome-typescript-loader": "^5.2.0",
         "electron": "2.0.7",
+        "electron-builder": "^20.28.2",
         "tslint": "^5.10.0",
         "typescript": "^2.9.2",
         "webpack": "^4.16.5",
@@ -23,5 +24,36 @@
     },
     "dependencies": {
         "mkdirp": "^0.5.1"
+    },
+    "build": {
+        "productName": "app",
+        "compression": "maximum",
+        "directories": {
+            "buildResources": "./build",
+            "output": "./release"
+        },
+        "win": {
+            "icon": "app.ico"
+        },
+        "electronDist": "./node_modules/electron/dist",
+        "npmRebuild": false,
+        "asar": true,
+        "extraResources": ["assets"],
+        "files": [{
+                "from": "dist",
+                "to": "dist",
+                "filter": [
+                    "**/*",
+                    "!**/*.map"
+                ]
+            },
+            {
+                "from": ".",
+                "to": ".",
+                "filter": [
+                    "package.json"
+                ]
+            }
+        ]
     }
 }

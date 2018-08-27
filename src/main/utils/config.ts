@@ -24,9 +24,13 @@ CONFIG.distDir = path.join(__dirname, "../../")
 if (global.DEBUG) {
     CONFIG.entryUrl = fileUrl(path.join(CONFIG.distDir, "index/index.html"))
     CONFIG.endPoint = fileUrl(path.join(CONFIG.distDir))
+
+    CONFIG.assetsDir = path.join(__dirname, "../../../", "assets")
 } else {
-    CONFIG.entryUrl = ""
-    CONFIG.endPoint = ""
+    CONFIG.entryUrl = fileUrl(path.join(CONFIG.distDir, "index/index.html"))
+    CONFIG.endPoint = fileUrl(path.join(CONFIG.distDir))
+
+    CONFIG.assetsDir = path.join(process.resourcesPath!, "assets")
 }
 
 CONFIG.loadingUrl = fileUrl(

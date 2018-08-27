@@ -7,12 +7,16 @@ class PersistenceSettings {
     }
 
     public loadFromFile() {
-        try {
-            this.config = JSON.parse(
-                fs.readFileSync(global.CONFIG.settingsFile, "utf8")
-            )
-        } catch (err) {
-            console.log(err)
+        if (fs.existsSync(global.CONFIG.settingsFile)) {
+            try {
+                this.config = JSON.parse(
+                    fs.readFileSync(global.CONFIG.settingsFile, "utf8")
+                )
+            } catch (err) {
+                console.log(err)
+                this.config = {}
+            }
+        } else {
             this.config = {}
         }
     }

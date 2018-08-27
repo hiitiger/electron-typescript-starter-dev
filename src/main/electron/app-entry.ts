@@ -14,8 +14,6 @@ const ClientWindows: string[] = [AppWindows.main, AppWindows.loading]
 
 const PREADLOAD_JS = path.join(__dirname, "./preload.js")
 
-console.log(PREADLOAD_JS)
-
 class Application {
     private windows: Map<string, Electron.BrowserWindow>
     private appDir: string
@@ -71,10 +69,6 @@ class Application {
                 window.hide()
                 return false
             })
-
-            if (global.DEBUG) {
-                window.webContents.openDevTools()
-            }
         }
     }
 
@@ -204,9 +198,8 @@ class Application {
 
     public setupSystemTray() {
         if (!this.tray) {
-            this.tray = new Tray(
-                path.join(global.CONFIG.distDir, "assets/icon-16.png")
-            )
+            const icon = path.join(global.CONFIG.assetsDir, "app.ico")
+            this.tray = new Tray(icon)
             const contextMenu = Menu.buildFromTemplate([
                 {
                     label: "OpenMainWindow",
@@ -259,7 +252,7 @@ class Application {
     }
 
     public showAbout() {
-        this.openLink(path.join(global.CONFIG.distDir, "./index/about.txt"))
+        this.openLink(path.join(global.CONFIG.assetsDir, "about.txt"))
     }
 
     public openLink(url: string) {
@@ -291,6 +284,14 @@ class Application {
         window.on("closed", () => {
             this.windows.delete(name)
         })
+        window.webContents.on(
+            "before-input-event",
+            (event: Electron.Event, input: Electron.Input) => {
+                if (input.key === "F12" && input.type === "keyDown") {
+                    window.webContents.openDevTools()
+                }
+            }
+        )
         return window
     }
 

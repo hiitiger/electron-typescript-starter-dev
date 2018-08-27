@@ -3,6 +3,7 @@ declare namespace NodeJS {
         DEBUG: any;
         CONFIG: {
             distDir: string;
+            assetsDir: string;
             loadingUrl: string;
             entryUrl: string;
             endPoint: string;
