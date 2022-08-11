@@ -2,3 +2,5 @@ node_modules
 release
 dist/main/
 dist/renderer/
+build_Win32
+build_x64

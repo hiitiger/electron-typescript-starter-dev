@@ -7,3 +7,6 @@ build/
 dist/
 webpack.config.renderer.js
 *.d.ts
+native
+nativelib
+scripts

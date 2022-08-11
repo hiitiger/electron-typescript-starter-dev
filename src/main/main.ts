@@ -3,9 +3,11 @@ import './utils/config'
 
 import { Application } from './electron/app-entry'
 
-import { settings } from './electron/common/settings'
+import './electron/common/settings'
 
 import mkdirp from 'mkdirp'
+
+import * as AppCore from '../../nativelib/app_core'
 
 mkdirp(global.CONFIG.appDataDir)
   .then()
@@ -18,6 +20,8 @@ const appEntry = new Application()
 ElectronApp.on('ready', () => {
   appEntry.init(__dirname)
   appEntry.start()
+
+  console.error(`AppCore.hello(): ${AppCore.hello()}`)
 })
 
 ElectronApp.on('window-all-closed', () => {
