@@ -1,0 +1,9 @@
+.vscode/
+public/
+.eslintrc.js
+.prettierrc.js
+node_modules/
+build/
+dist/
+webpack.config.renderer.js
+*.d.ts
